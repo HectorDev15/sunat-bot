@@ -1,6 +1,6 @@
-# Composer Project Skeleton
+# Sunat BOT
 
-Init new composer skeleton project
+Conexion a sunat utilizando la clave SOL.
 
-### Dev-Dependencies
-- phpunit 
+### Funcionalidades
+- Lista documentos electrónicos emitidos
