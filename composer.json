@@ -1,0 +1,36 @@
+{
+    "name": "giansalex/sunat-bot",
+    "description": "Sunat BOT",
+    "keywords": ["sunat", "bot"],
+    "license": "MIT",
+    "optimize-autoloader": true,
+    "classmap-authoritative": true,
+    "authors": [
+        {
+            "name": "Giancarlos Salas",
+            "email": "giansalex@gmail.com",
+            "role" : "Developer"
+        }
+    ],
+    "homepage": "https://github.com/giansalex/sunat-bot",
+    "type": "library",
+    "require": {
+        "php": ">=5.5.9",
+        "ext-dom": "*",
+        "ext-zlib": "*",
+        "php-curl-class/php-curl-class": "^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=4.8 < 6.0"
+    },
+	"autoload": {
+        "psr-4": {
+            "Sunat\\Bot\\": "src/Bot/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Sunat\\": "tests/"
+        }
+    }
+}
