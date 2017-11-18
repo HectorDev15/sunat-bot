@@ -23,33 +23,8 @@ final class ZipReader
      */
     public function decompressXmlFile($zipContent)
     {
-        $start = 0;
-        $max = 5;
-        while ($max > 0) {
-            $dat = substr($zipContent, $start, 30);
-            if (empty($dat)) {
-                break;
-            }
-            $head = unpack(self::UNZIP_FORMAT, $dat);
-            $filename = substr(substr($zipContent, $start),30, $head['namelen']);
-            if (empty($filename)) {
-                break;
-            }
-            $count = 30 + $head['namelen'] + $head['exlen'];
-            if (strtolower($this->getFileExtension($filename)) == 'xml') {
-                echo 'xml: ' . $filename;
-                return gzinflate(substr($zipContent, $start + $count, $head['csize']));
-            }
-            $start += $count + $head['csize'];
-            $max--;
-        }
-        return '';
-    }
-
-    function getFileExtension($filename)
-    {
-        $lastDotPos = strrpos($filename, '.');
-        if (!$lastDotPos) return '';
-        return substr($filename, $lastDotPos + 1);
+        $head = unpack(self::UNZIP_FORMAT, substr($zipContent,0,30));
+//        $filename = substr($zipContent,30,$head['namelen']);
+        return gzinflate(substr($zipContent,30+$head['namelen']+$head['exlen']));
     }
 }

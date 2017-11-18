@@ -100,7 +100,6 @@ class Bot
             throw new \Exception("Error obteniendo ventas json");
         }
 
-        file_put_contents('da.json', $root->data);
         $all = [];
         $objs = json_decode($root->data);
 
@@ -126,8 +125,6 @@ class Bot
             'serie' => $serie,
             'numero' => $correlativo,
         ]);
-
-        file_put_contents('my.zip', $fileZip);
 
         $reader = new ZipReader();
         $xml = $reader->decompressXmlFile($fileZip);
