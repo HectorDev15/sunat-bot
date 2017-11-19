@@ -43,6 +43,16 @@ class BotTest extends \PHPUnit_Framework_TestCase
         $this->assertGreaterThanOrEqual(1, count($sales));
     }
 
+    public function testRrhh()
+    {
+        $this->bot->login();
+        $elements = $this->bot->getRrhh('01/08/2017', '24/08/2017');
+
+        $this->assertTrue(count($elements) > 0);
+
+        $this->bot->getRrhhXml(0);
+    }
+
     public function testGetXml()
     {
         $this->bot->login();

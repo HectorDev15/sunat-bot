@@ -10,6 +10,7 @@ namespace Sunat\Bot;
 
 use Sunat\Bot\Helper\ZipReader;
 use Sunat\Bot\Model\ClaveSol;
+use Sunat\Bot\Model\RrhhResult;
 use Sunat\Bot\Model\SaleResult;
 use Sunat\Bot\Request\CookieRequest;
 
@@ -24,14 +25,15 @@ class Bot
     const URL_FORMAT_VENTAS = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do?action=realizarConsulta&buscarPor=porPer&estado=0&fec_desde=%s&fec_hasta=%s&tipoConsulta=10';
     const URL_DOWNLOAD_XML = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do';
 
-    /**
-     * @var \Curl\Curl
-     */
-    private $curl;
+    const URL_MENU_RRHH = 'https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm?action=execute&code=11.5.1.1.13&s=ww1';
     /**
      * @var ClaveSol
      */
     private $user;
+    /**
+     * @var CookieRequest
+     */
+    private $req;
 
     /**
      * Bot constructor.
@@ -40,8 +42,7 @@ class Bot
     public function __construct(ClaveSol $user)
     {
         $this->user = $user;
-        $this->curl = (new CookieRequest())->getCurl();
-        $this->curl->setUserAgent('');
+        $this->req = new CookieRequest();
     }
 
     /**
@@ -49,7 +50,7 @@ class Bot
      */
     public function login()
     {
-        $curl = $this->curl;
+        $curl = $this->req->getCurl();
 
         $curl->post(self::URL_AUTH, [
             'tipo' => '2',
@@ -68,7 +69,7 @@ class Bot
 
         $this->navigateUrls([
             $headers['Location'],
-            self::URL_MENU,
+            self::URL_MENU_RRHH,
         ]);
 
         return true;
@@ -82,10 +83,96 @@ class Bot
     public function getVentas($start, $end)
     {
         $url = sprintf(self::URL_FORMAT_VENTAS, urlencode($start), urlencode($end));
-        $curl = $this->curl;
+        $curl = $this->req->getCurl();
         $html = $curl->get($url);
 
         return $this->getList($html);
+    }
+
+    /**
+     * @param $start
+     * @param $end
+     * @return RrhhResult[]
+     */
+    public function getRrhh($start, $end)
+    {
+        $curl = $this->req->getCurl();
+        /*$html = $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
+            'accion' => 'CapturaCriterioBusqueda1',
+            'proceso' => '31196ALTA',
+            'indicadoralta' => 'PNAT',
+            'tipocomprobante' => '01;',
+            'cod_docide' => '-',
+            'num_docide' => '',
+            'num_serie' => '',
+            'num_comprob' => '',
+            'fec_desde' => '01/08/2017',
+            'fec_hasta' => '24/08/2017',
+            'tipoestado' => '00',
+            'tipocomprobante1' => '01',
+        ]);*/
+
+        $start = urlencode($start);
+        $end = urlencode($end);
+
+        $data = "accion=CapturaCriterioBusqueda1&proceso=31196ALTA&indicadoralta=PNAT&tipocomprobante=01%3B02%3B03%3B&cod_docide=-&num_docide=&num_serie=&num_comprob=&fec_desde=$start&fec_hasta=$end&tipoestado=00&tipocomprobante1=01&tipocomprobante1=02&tipocomprobante1=03";
+//
+        $curl->setUrl('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias');
+        $curl->setOpt(CURLOPT_POST, true);
+        $curl->setOpt(CURLOPT_POSTFIELDS, $data);
+        $curl->exec();
+
+        $curl->setOpt(CURLOPT_ENCODING , 'utf-8');
+        $html = $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
+            'accion' => 'descargaConsultaEmisor'
+        ]);
+
+        return iterator_to_array($this->parseTxt($html));
+    }
+
+    public function getRrhhXml($pos)
+    {
+        $curl = $this->req->getCurl();
+        $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
+            'posirecibo' => $pos,
+            'accion' => 'CapturaCriterioBusqueda2',
+        ]);
+
+        $curl->setOpt(CURLOPT_ENCODING, '');
+        $xml = $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
+            'accion' => 'descargarreciboxml',
+        ]);
+
+    }
+
+    private function parseTxt($txt)
+    {
+        $separator = "\r\n";
+        strtok($txt, $separator);
+        $line = strtok($separator);
+        while ($line !== false) {
+            $items = explode('|', $line);
+            $rrhh = new RrhhResult();
+            $rrhh->fecEmision = $items[0];
+            $rrhh->tipoDoc = $items[1];
+            $rrhh->serieNroDoc = $items[2];
+            $rrhh->estado = $items[3];
+            $rrhh->clientTipoDoc = $items[4];
+            $rrhh->clientNroDoc = rtrim($items[5]);
+            $rrhh->clientRzSocial = $items[6];
+            $rrhh->tipoRenta = $items[7];
+            $rrhh->isGratuito = $items[8] == 'SI';
+            $rrhh->descripcion = $items[9];
+            $rrhh->observacion = $items[10];
+            $rrhh->moneda = $items[11];
+            $rrhh->rentaBruta = floatval($items[12]);
+            $rrhh->impuestoRenta = floatval($items[13]);
+            $rrhh->rentaNeta = floatval($items[14]);
+            $rrhh->montoNetoPago = floatval($items[15]);
+
+            yield $rrhh;
+            $line = strtok($separator);
+        }
     }
 
     private function getList($html)
@@ -117,7 +204,7 @@ class Bot
      */
     public function getXml($serie, $correlativo)
     {
-        $curl = $this->curl;
+        $curl = $this->req->getCurl();
         $fileZip = $curl->post(self::URL_DOWNLOAD_XML, [
             'action' => 'descargarFactura',
             'ruc' => $this->user->ruc,
@@ -134,7 +221,7 @@ class Bot
 
     private function navigateUrls(array $urls)
     {
-        $curl = $this->curl;
+        $curl = $this->req->getCurl();
         foreach ($urls as $url) {
             $curl->get($url);
             if($curl->error) {
