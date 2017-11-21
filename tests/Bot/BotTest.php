@@ -53,7 +53,7 @@ class BotTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue(count($elements) > 0);
 
-        $this->bot->getRrhhXml(0);
+//        $this->bot->getRrhhXml(0);
     }
 
     public function testGetXml()

@@ -125,7 +125,7 @@ class Bot
         return iterator_to_array($this->parseTxt($html));
     }
 
-    public function getRrhhXml($pos)
+    private function getRrhhXml($pos)
     {
         $curl = $this->req->getCurl();
         $xml = $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
