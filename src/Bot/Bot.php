@@ -21,11 +21,9 @@ use Sunat\Bot\Request\CookieRequest;
 class Bot
 {
     const URL_AUTH = 'https://e-menu.sunat.gob.pe/cl-ti-itmenu/AutenticaMenuInternet.htm';
-    const URL_MENU = 'https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm?action=execute&code=11.5.3.1.2&s=ww1';
     const URL_FORMAT_VENTAS = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do?action=realizarConsulta&buscarPor=porPer&estado=0&fec_desde=%s&fec_hasta=%s&tipoConsulta=10';
     const URL_DOWNLOAD_XML = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do';
 
-    const URL_MENU_RRHH = 'https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm?action=execute&code=11.5.1.1.13&s=ww1';
     /**
      * @var ClaveSol
      */
@@ -67,10 +65,7 @@ class Bot
             return false;
         }
 
-        $this->navigateUrls([
-            $headers['Location'],
-            self::URL_MENU_RRHH,
-        ]);
+        $this->navigate([$headers['Location']]);
 
         return true;
     }
@@ -133,7 +128,7 @@ class Bot
     public function getRrhhXml($pos)
     {
         $curl = $this->req->getCurl();
-        $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
+        $xml = $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
             'posirecibo' => $pos,
             'accion' => 'CapturaCriterioBusqueda2',
         ]);
@@ -143,6 +138,23 @@ class Bot
             'accion' => 'descargarreciboxml',
         ]);
 
+    }
+
+    public function navigate(array $urls)
+    {
+        $curl = $this->req->getCurl();
+        foreach ($urls as $url) {
+            $curl->get($url);
+            if($curl->error) {
+                return false;
+            }
+            $headers = $curl->responseHeaders;
+            if (isset($headers['Location'])) {
+                $curl->get($headers['Location']);
+            }
+        }
+
+        return true;
     }
 
     private function parseTxt($txt)
@@ -217,22 +229,5 @@ class Bot
         $xml = $reader->decompressXmlFile($fileZip);
 
         return $xml;
-    }
-
-    private function navigateUrls(array $urls)
-    {
-        $curl = $this->req->getCurl();
-        foreach ($urls as $url) {
-            $curl->get($url);
-            if($curl->error) {
-                return false;
-            }
-            $headers = $curl->responseHeaders;
-            if (isset($headers['Location'])) {
-                $curl->get($headers['Location']);
-            }
-        }
-
-        return true;
     }
 }

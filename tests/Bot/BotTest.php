@@ -9,6 +9,7 @@
 namespace Tests\Sunat\Bot;
 
 use Sunat\Bot\Bot;
+use Sunat\Bot\Menu;
 use Sunat\Bot\Model\ClaveSol;
 
 class BotTest extends \PHPUnit_Framework_TestCase
@@ -36,6 +37,7 @@ class BotTest extends \PHPUnit_Framework_TestCase
     public function testGetList()
     {
         $this->bot->login();
+        $this->bot->navigate([Menu::CONSULTA_FACTURA_NOTA]);
         $start = '01/08/2017';
         $end = '24/08/2017';
         $sales = $this->bot->getVentas($start, $end);
@@ -46,6 +48,7 @@ class BotTest extends \PHPUnit_Framework_TestCase
     public function testRrhh()
     {
         $this->bot->login();
+        $this->bot->navigate([Menu::CONSULTA_RRHH]);
         $elements = $this->bot->getRrhh('01/08/2017', '24/08/2017');
 
         $this->assertTrue(count($elements) > 0);
@@ -56,6 +59,7 @@ class BotTest extends \PHPUnit_Framework_TestCase
     public function testGetXml()
     {
         $this->bot->login();
+        $this->bot->navigate([Menu::CONSULTA_FACTURA_NOTA]);
         $xml = $this->bot->getXml('E001', '180');
 
         file_put_contents('xml.xml', $xml);
