@@ -64,23 +64,13 @@ class BotTest extends \PHPUnit_Framework_TestCase
 //        file_put_contents('data.xml', $xml);
     }
 
-    public function testRrhh()
-    {
-        $this->bot->login();
-        $this->bot->navigate([Menu::CONSULTA_RRHH]);
-        $elements = $this->bot->getRrhh('01/08/2017', '24/08/2017');
-
-        $this->assertTrue(count($elements) > 0);
-
-//        $this->bot->getRrhhXml(0);
-    }
-
     public function testGetXml()
     {
         $this->bot->login();
         $this->bot->navigate([Menu::CONSULTA_SOL_FACTURA]);
         $xml = $this->bot->getXml('E001', '180');
 
-        file_put_contents('xml.xml', $xml);
+        $this->assertNotEmpty($xml);
+//        file_put_contents('xml.xml', $xml);
     }
 }

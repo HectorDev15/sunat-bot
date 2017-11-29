@@ -19,7 +19,7 @@ class CookieRequest
     /**
      * @var array
      */
-    private $cookies;
+    public $cookies;
 
     /**
      * CookieRequest constructor.
@@ -35,6 +35,8 @@ class CookieRequest
     public function getCurl()
     {
         $curl = new Curl();
+//        $curl->setOpt(CURLOPT_PROXY, '127.0.0.1:8888');
+//        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
         $curl->setUserAgent('');
         if (!empty($this->cookies)) {
             $curl->setCookies($this->cookies);

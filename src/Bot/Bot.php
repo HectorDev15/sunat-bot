@@ -167,19 +167,26 @@ class Bot
         return iterator_to_array($this->parseTxt($html));
     }
 
-    private function getRrhhXml($pos)
+    /**
+     * Get xml content.
+     *
+     * @param int $pos Posicion de la busqueda
+     * @return string|null
+     */
+    public function getRrhhXml($pos)
     {
         $curl = $this->req->getCurl();
-        $xml = $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
+        $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
             'posirecibo' => $pos,
             'accion' => 'CapturaCriterioBusqueda2',
         ]);
 
         $curl->setOpt(CURLOPT_ENCODING, '');
-        $xml = $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
+        $curl->post('https://ww1.sunat.gob.pe/ol-ti-itreciboelectronico/cpelec001Alias', [
             'accion' => 'descargarreciboxml',
         ]);
 
+        return $curl->rawResponse;
     }
 
     public function navigate(array $urls)
