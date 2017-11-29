@@ -45,6 +45,17 @@ class BotTest extends \PHPUnit_Framework_TestCase
         $this->assertGreaterThanOrEqual(1, count($sales));
     }
 
+    public function testGetListBol()
+    {
+        $this->bot->login();
+        $this->bot->navigate([Menu::CONSULTA_SOL_BOLETA]);
+        $start = '01/08/2017';
+        $end = '24/08/2017';
+        $sales = $this->bot->getVentasBol($start, $end);
+
+        $this->assertEquals(0, count($sales));
+    }
+
     public function testGetSee()
     {
         $this->bot->login();

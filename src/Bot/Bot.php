@@ -22,8 +22,10 @@ use Sunat\Bot\Request\CookieRequest;
 class Bot
 {
     const URL_AUTH = 'https://e-menu.sunat.gob.pe/cl-ti-itmenu/AutenticaMenuInternet.htm';
-    const URL_FORMAT_VENTAS = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do?action=realizarConsulta&buscarPor=porPer&estado=0&fec_desde=%s&fec_hasta=%s&tipoConsulta=10';
-    const URL_DOWNLOAD_XML = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do';
+    const URL_FORMAT_FE = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do?action=realizarConsulta&buscarPor=porPer&estado=0&fec_desde=%s&fec_hasta=%s&tipoConsulta=10';
+    const URL_FORMAT_BE = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemypebve/consultar.do?action=realizarConsulta&buscarPor=porPer&estado=1&fec_desde=%s&fec_hasta=%s&tipoConsulta=17';
+    const URL_DOWNLOAD_XML_FAC = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do';
+    const URL_DOWNLOAD_XML_BOL = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemypebve/consultar.do';
 
     // SEE VENTAS
     const URL_SEE_CS = 'https://ww1.sunat.gob.pe/ol-ti-itconscpegem/consultar.do';
@@ -79,11 +81,30 @@ class Bot
      * @param string $start
      * @param string $end
      * @return SaleResult[]
-     * @throws \Exception
      */
     public function getVentas($start, $end)
     {
-        $url = sprintf(self::URL_FORMAT_VENTAS, urlencode($start), urlencode($end));
+        $url = sprintf(self::URL_FORMAT_FE, urlencode($start), urlencode($end));
+        $curl = $this->req->getCurl();
+        $html = $curl->get($url);
+
+        $all = [];
+        $objs = $this->getList($html);
+        foreach ($objs as $item) {
+            $all[] = SaleResult::createFromArray($item);
+        }
+
+        return $all;
+    }
+
+    /**
+     * @param string $start
+     * @param string $end
+     * @return SaleResult[]
+     */
+    public function getVentasBol($start, $end)
+    {
+        $url = sprintf(self::URL_FORMAT_BE, urlencode($start), urlencode($end));
         $curl = $this->req->getCurl();
         $html = $curl->get($url);
 
@@ -101,7 +122,6 @@ class Bot
      * @param string $serie
      * @param string $correlativo
      * @return SaleSeeResult
-     * @throws \Exception
      */
     public function getVentaSee($serie, $correlativo)
     {
@@ -241,7 +261,6 @@ class Bot
     /**
      * @param $html
      * @return mixed
-     * @throws \Exception
      */
     private function getList($html)
     {
@@ -252,7 +271,7 @@ class Bot
 
         $root = json_decode($text);
         if ($root->codeError != 0) {
-            throw new \Exception("Error obteniendo ventas json");
+            return [];
         }
 
         $objs = json_decode($root->data);
@@ -269,10 +288,32 @@ class Bot
     public function getXml($serie, $correlativo)
     {
         $curl = $this->req->getCurl();
-        $curl->post(self::URL_DOWNLOAD_XML, [
+        $curl->post(self::URL_DOWNLOAD_XML_FAC, [
             'action' => 'descargarFactura',
             'ruc' => $this->user->ruc,
             'tipo' => '10',
+            'serie' => $serie,
+            'numero' => $correlativo,
+        ]);
+
+        $reader = new ZipReader();
+        $xml = $reader->decompressXmlFile($curl->rawResponse);
+
+        return $xml;
+    }
+
+    /**
+     * @param string $serie
+     * @param string $correlativo
+     * @return string El contenido del xml del comprabante electrónico.
+     */
+    public function getXmlBol($serie, $correlativo)
+    {
+        $curl = $this->req->getCurl();
+        $curl->post(self::URL_DOWNLOAD_XML_BOL, [
+            'action' => 'descargarFactura',
+            'ruc' => $this->user->ruc,
+            'tipo' => '17',
             'serie' => $serie,
             'numero' => $correlativo,
         ]);
