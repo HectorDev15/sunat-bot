@@ -37,12 +37,31 @@ class BotTest extends \PHPUnit_Framework_TestCase
     public function testGetList()
     {
         $this->bot->login();
-        $this->bot->navigate([Menu::CONSULTA_FACTURA_NOTA]);
+        $this->bot->navigate([Menu::CONSULTA_SOL_FACTURA]);
         $start = '01/08/2017';
         $end = '24/08/2017';
         $sales = $this->bot->getVentas($start, $end);
 
         $this->assertGreaterThanOrEqual(1, count($sales));
+    }
+
+    public function testGetSee()
+    {
+        $this->bot->login();
+        $this->bot->navigate([Menu::CONSULTA_SEE_FE]);
+        $doc = $this->bot->getVentaSee('F001', '184');
+
+        $this->assertNotNull($doc);
+    }
+
+    public function testGetXmlSee()
+    {
+        $this->bot->login();
+        $this->bot->navigate([Menu::CONSULTA_SEE_FE]);
+        $xml = $this->bot->getSeeXml('F001', '184');
+
+        $this->assertNotEmpty($xml);
+//        file_put_contents('data.xml', $xml);
     }
 
     public function testRrhh()
@@ -59,7 +78,7 @@ class BotTest extends \PHPUnit_Framework_TestCase
     public function testGetXml()
     {
         $this->bot->login();
-        $this->bot->navigate([Menu::CONSULTA_FACTURA_NOTA]);
+        $this->bot->navigate([Menu::CONSULTA_SOL_FACTURA]);
         $xml = $this->bot->getXml('E001', '180');
 
         file_put_contents('xml.xml', $xml);

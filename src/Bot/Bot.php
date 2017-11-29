@@ -12,6 +12,7 @@ use Sunat\Bot\Helper\ZipReader;
 use Sunat\Bot\Model\ClaveSol;
 use Sunat\Bot\Model\RrhhResult;
 use Sunat\Bot\Model\SaleResult;
+use Sunat\Bot\Model\SaleSeeResult;
 use Sunat\Bot\Request\CookieRequest;
 
 /**
@@ -23,6 +24,10 @@ class Bot
     const URL_AUTH = 'https://e-menu.sunat.gob.pe/cl-ti-itmenu/AutenticaMenuInternet.htm';
     const URL_FORMAT_VENTAS = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do?action=realizarConsulta&buscarPor=porPer&estado=0&fec_desde=%s&fec_hasta=%s&tipoConsulta=10';
     const URL_DOWNLOAD_XML = 'https://ww1.sunat.gob.pe/ol-ti-itconscpemype/consultar.do';
+
+    // SEE VENTAS
+    const URL_SEE_CS = 'https://ww1.sunat.gob.pe/ol-ti-itconscpegem/consultar.do';
+    const URL_SEE_XML = 'https://ww1.sunat.gob.pe/ol-ti-itconscpegem/consultar.do?action=descargarFactura&ruc=%s&tipo=10&serie=%s&numero=%s&isGEM=isGEM';
 
     /**
      * @var ClaveSol
@@ -81,7 +86,44 @@ class Bot
         $curl = $this->req->getCurl();
         $html = $curl->get($url);
 
-        return $this->getList($html);
+        $all = [];
+        $objs = $this->getList($html);
+        foreach ($objs as $item) {
+            $all[] = SaleResult::createFromArray($item);
+        }
+
+        return $all;
+    }
+
+    /**
+     * Get Venta emitida desde el sistema del contribuyente.
+     * @param string $serie
+     * @param string $correlativo
+     * @return SaleSeeResult
+     */
+    public function getVentaSee($serie, $correlativo)
+    {
+        $params = [
+            'action' => 'realizarConsulta',
+            'buscarPor' => 'porDoc',
+            'tipoConsulta' => '10',
+            'rucEmisor' => '',
+            'numDocideRecep' => '',
+            'serie' => $serie,
+            'numero' => $correlativo,
+            'fecDesde' => '',
+            'fecHasta' => '',
+        ];
+
+        $curl = $this->req->getCurl();
+        $html = $curl->post(self::URL_SEE_CS, $params);
+
+        $objs = $this->getList($html);
+        if (count($objs) == 0) {
+            return null;
+        }
+
+        return SaleSeeResult::createFromArray($objs[0]);
     }
 
     /**
@@ -199,14 +241,10 @@ class Bot
             throw new \Exception("Error obteniendo ventas json");
         }
 
-        $all = [];
         $objs = json_decode($root->data);
 
-        foreach ($objs as $item) {
-            $all[] = SaleResult::createFromArray($item);
-        }
 
-        return $all;
+        return $objs;
     }
 
     /**
@@ -224,6 +262,23 @@ class Bot
             'serie' => $serie,
             'numero' => $correlativo,
         ]);
+
+        $reader = new ZipReader();
+        $xml = $reader->decompressXmlFile($fileZip);
+
+        return $xml;
+    }
+
+    /**
+     * @param string $serie
+     * @param string $correlativo
+     * @return string El contenido del xml del comprabante electrónico.
+     */
+    public function getSeeXml($serie, $correlativo)
+    {
+        $curl = $this->req->getCurl();
+        $url = sprintf(self::URL_SEE_XML, $this->user->ruc, urlencode($serie), urlencode($correlativo));
+        $fileZip = $curl->get($url);
 
         $reader = new ZipReader();
         $xml = $reader->decompressXmlFile($fileZip);
