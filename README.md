@@ -1,5 +1,5 @@
 # Sunat BOT
-
+[![Build Status](https://travis-ci.org/giansalex/sunat-bot.svg?branch=master)](https://travis-ci.org/giansalex/sunat-bot)  
 Conexion a sunat utilizando la clave SOL.
 
 ### Funcionalidades
