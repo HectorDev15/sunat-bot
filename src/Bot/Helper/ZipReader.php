@@ -24,7 +24,6 @@ final class ZipReader
     public function decompressXmlFile($zipContent)
     {
         $head = unpack(self::UNZIP_FORMAT, substr($zipContent,0,30));
-//        $filename = substr($zipContent,30,$head['namelen']);
         return gzinflate(substr($zipContent,30+$head['namelen']+$head['exlen']));
     }
 }

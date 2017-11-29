@@ -79,6 +79,7 @@ class Bot
      * @param string $start
      * @param string $end
      * @return SaleResult[]
+     * @throws \Exception
      */
     public function getVentas($start, $end)
     {
@@ -100,6 +101,7 @@ class Bot
      * @param string $serie
      * @param string $correlativo
      * @return SaleSeeResult
+     * @throws \Exception
      */
     public function getVentaSee($serie, $correlativo)
     {
@@ -236,6 +238,11 @@ class Bot
         }
     }
 
+    /**
+     * @param $html
+     * @return mixed
+     * @throws \Exception
+     */
     private function getList($html)
     {
         $doc = new \DOMDocument();
@@ -262,7 +269,7 @@ class Bot
     public function getXml($serie, $correlativo)
     {
         $curl = $this->req->getCurl();
-        $fileZip = $curl->post(self::URL_DOWNLOAD_XML, [
+        $curl->post(self::URL_DOWNLOAD_XML, [
             'action' => 'descargarFactura',
             'ruc' => $this->user->ruc,
             'tipo' => '10',
@@ -271,7 +278,7 @@ class Bot
         ]);
 
         $reader = new ZipReader();
-        $xml = $reader->decompressXmlFile($fileZip);
+        $xml = $reader->decompressXmlFile($curl->rawResponse);
 
         return $xml;
     }
