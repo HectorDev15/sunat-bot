@@ -325,14 +325,15 @@ class Bot
     }
 
     /**
+     * @param string $ruc
      * @param string $serie
      * @param string $correlativo
      * @return string El contenido del xml del comprabante electrónico.
      */
-    public function getSeeXml($serie, $correlativo)
+    public function getSeeXml($ruc, $serie, $correlativo)
     {
         $curl = $this->req->getCurl();
-        $url = sprintf(self::URL_SEE_XML, $this->user->ruc, urlencode($serie), urlencode($correlativo));
+        $url = sprintf(self::URL_SEE_XML, $ruc, $serie, $correlativo);
         $fileZip = $curl->get($url);
 
         $reader = new ZipReader();

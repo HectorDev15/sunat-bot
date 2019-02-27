@@ -67,9 +67,10 @@ class BotTest extends \PHPUnit_Framework_TestCase
 
     public function testGetXmlSee()
     {
+        $ruc = getenv('COMPANY_RUC');
         $this->bot->login();
         $this->bot->navigate([Menu::CONSULTA_SEE_FE]);
-        $xml = $this->bot->getSeeXml('F001', '184');
+        $xml = $this->bot->getSeeXml($ruc,'F001', '184');
 
         $this->assertNotEmpty($xml);
 //        file_put_contents('data.xml', $xml);
