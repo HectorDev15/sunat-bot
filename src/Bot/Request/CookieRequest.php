@@ -41,7 +41,7 @@ class CookieRequest
         if (!empty($this->cookies)) {
             $curl->setCookies($this->cookies);
         }
-        $curl->completeFunction = function (Curl $instance) {
+        $curl->completeCallback = function (Curl $instance) {
             $this->cookies = array_merge($this->cookies, $instance->responseCookies);
             $instance->setCookies($this->cookies);
         };
