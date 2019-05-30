@@ -8,6 +8,8 @@
 
 namespace Sunat\Bot;
 
+use Curl\CaseInsensitiveArray;
+use DOMDocument;
 use Sunat\Bot\Helper\ZipReader;
 use Sunat\Bot\Model\ClaveSol;
 use Sunat\Bot\Model\RrhhResult;
@@ -66,7 +68,7 @@ class Bot
             'params' => '*&*&/cl-ti-itmenu/MenuInternet.htm&b64d26a8b5af091923b23b6407a1c1db41e733a6',
             'exe' => ''
         ]);
-        /**@var $headers \Curl\CaseInsensitiveArray*/
+        /**@var $headers CaseInsensitiveArray*/
         $headers = $curl->responseHeaders;
         if (!isset($headers['Location'])) {
             return false;
@@ -264,7 +266,7 @@ class Bot
      */
     private function getList($html)
     {
-        $doc = new \DOMDocument();
+        $doc = new DOMDocument();
         @$doc->loadHTML($html);
         $nodes = $doc->getElementsByTagName('textarea');
         $text = $nodes->item(0)->textContent;
