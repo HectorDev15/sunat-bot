@@ -34,7 +34,7 @@ $bot = new Bot($user);
 
 $bot->login();
 $bot->navigate([Menu::CONSULTA_SEE_FE]);
-$xml = $this->bot->getSeeXml($user->ruc, 'F001', '1');
+$xml = $bot->getSeeXml($user->ruc, 'F001', '1');
 
 file_put_contents('factura.xml', $xml);
 
