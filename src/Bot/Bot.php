@@ -283,16 +283,17 @@ class Bot
     }
 
     /**
+     * @param string $ruc
      * @param string $serie
      * @param string $correlativo
      * @return string El contenido del xml del comprabante electrónico.
      */
-    public function getXml($serie, $correlativo)
+    public function getXmlFac($ruc, $serie, $correlativo)
     {
         $curl = $this->req->getCurl();
         $curl->post(self::URL_DOWNLOAD_XML_FAC, [
             'action' => 'descargarFactura',
-            'ruc' => $this->user->ruc,
+            'ruc' => $ruc,
             'tipo' => '10',
             'serie' => $serie,
             'numero' => $correlativo,
@@ -305,16 +306,17 @@ class Bot
     }
 
     /**
+     * @param string $ruc
      * @param string $serie
      * @param string $correlativo
      * @return string El contenido del xml del comprabante electrónico.
      */
-    public function getXmlBol($serie, $correlativo)
+    public function getXmlBol($ruc, $serie, $correlativo)
     {
         $curl = $this->req->getCurl();
         $curl->post(self::URL_DOWNLOAD_XML_BOL, [
             'action' => 'descargarFactura',
-            'ruc' => $this->user->ruc,
+            'ruc' => $ruc,
             'tipo' => '17',
             'serie' => $serie,
             'numero' => $correlativo,

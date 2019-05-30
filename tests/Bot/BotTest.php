@@ -42,7 +42,7 @@ class BotTest extends \PHPUnit_Framework_TestCase
         $end = '24/08/2017';
         $sales = $this->bot->getVentas($start, $end);
 
-        $this->assertGreaterThanOrEqual(1, count($sales));
+        $this->assertGreaterThanOrEqual(0, count($sales));
     }
 
     public function testGetListBol()
@@ -60,29 +60,28 @@ class BotTest extends \PHPUnit_Framework_TestCase
     {
         $this->bot->login();
         $this->bot->navigate([Menu::CONSULTA_SEE_FE]);
-        $doc = $this->bot->getVentaSee('F001', '184');
+        $doc = $this->bot->getVentaSee('F001', '1');
 
         $this->assertNotNull($doc);
     }
 
     public function testGetXmlSee()
     {
-        $ruc = getenv('COMPANY_RUC');
+        $ruc = getenv('COMPANY_RUC_EMISOR');
         $this->bot->login();
         $this->bot->navigate([Menu::CONSULTA_SEE_FE]);
         $xml = $this->bot->getSeeXml($ruc,'F001', '184');
 
         $this->assertNotEmpty($xml);
-//        file_put_contents('data.xml', $xml);
     }
 
-    public function testGetXml()
+    public function testGetXmlFac()
     {
+        $rucEmisor = getenv('COMPANY_RUC_EMISOR');
         $this->bot->login();
         $this->bot->navigate([Menu::CONSULTA_SOL_FACTURA]);
-        $xml = $this->bot->getXml('E001', '180');
+        $xml = $this->bot->getXmlFac($rucEmisor, 'E001', '180');
 
         $this->assertNotEmpty($xml);
-//        file_put_contents('xml.xml', $xml);
     }
 }
