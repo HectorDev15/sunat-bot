@@ -286,7 +286,7 @@ class Bot
      * @param string $ruc
      * @param string $serie
      * @param string $correlativo
-     * @return string El contenido del xml del comprabante electrónico.
+     * @return false|string El contenido del xml del comprabante electrónico.
      */
     public function getXmlFac($ruc, $serie, $correlativo)
     {
@@ -299,6 +299,10 @@ class Bot
             'numero' => $correlativo,
         ]);
 
+        if ($this->isInvalidFileResult($curl->responseHeaders)) {
+            return false;
+        }
+
         $reader = new ZipReader();
         $xml = $reader->decompressXmlFile($curl->rawResponse);
 
@@ -309,7 +313,7 @@ class Bot
      * @param string $ruc
      * @param string $serie
      * @param string $correlativo
-     * @return string El contenido del xml del comprabante electrónico.
+     * @return false|string El contenido del xml del comprabante electrónico.
      */
     public function getXmlBol($ruc, $serie, $correlativo)
     {
@@ -322,6 +326,10 @@ class Bot
             'numero' => $correlativo,
         ]);
 
+        if ($this->isInvalidFileResult($curl->responseHeaders)) {
+            return false;
+        }
+
         $reader = new ZipReader();
         $xml = $reader->decompressXmlFile($curl->rawResponse);
 
@@ -332,7 +340,7 @@ class Bot
      * @param string $ruc
      * @param string $serie
      * @param string $correlativo
-     * @return string El contenido del xml del comprabante electrónico.
+     * @return false|string El contenido del xml del comprabante electrónico.
      */
     public function getSeeXml($ruc, $serie, $correlativo)
     {
@@ -340,9 +348,23 @@ class Bot
         $url = sprintf(self::URL_SEE_XML, $ruc, $serie, $correlativo);
         $fileZip = $curl->get($url);
 
+        if ($this->isInvalidFileResult($curl->responseHeaders)) {
+            return false;
+        }
+
         $reader = new ZipReader();
         $xml = $reader->decompressXmlFile($fileZip);
 
         return $xml;
+    }
+
+    private function isInvalidFileResult($headers)
+    {
+        if (isset($headers['Content-Type']) &&
+            strpos($headers['Content-Type'], 'text/html') !== false) {
+            return true;
+        }
+
+        return false;
     }
 }

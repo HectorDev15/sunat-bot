@@ -84,4 +84,14 @@ class BotTest extends \PHPUnit_Framework_TestCase
 
         $this->assertNotEmpty($xml);
     }
+
+    public function testNotFoundXml()
+    {
+        $rucEmisor = getenv('COMPANY_RUC_EMISOR');
+        $this->bot->login();
+        $this->bot->navigate([Menu::CONSULTA_SOL_FACTURA]);
+        $xml = $this->bot->getXmlFac($rucEmisor, 'E003', '180');
+
+        $this->assertFalse($xml);
+    }
 }
